@@ -264,7 +264,7 @@ SRCS += freebsd/sys/arm64/arm64/debug_monitor.c \
         freebsd/sys/kern/subr_kdb.c
 endif
 
-OBJS := $(SRCS:.c=.o)
+OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 
 .PHONY: all clean
 
@@ -273,8 +273,10 @@ all: libbsd.a
 libbsd.a: $(OBJS)
 	$(AR) rcs $@ $^
 
-%.o: %.c
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJS) libbsd.a
+	rm -rf $(OBJDIR)
