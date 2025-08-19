@@ -50,6 +50,7 @@ struct kdb_dbbe {
 	int		dbbe_active;
 };
 
+#if !defined(__RTBSD_LIBBSD__)
 #define	KDB_BACKEND(name, init, trace, trace_thread, trap) \
 	static struct kdb_dbbe name##_dbbe = {		\
 		.dbbe_name = #name,			\
@@ -61,6 +62,16 @@ struct kdb_dbbe {
 	DATA_SET(kdb_dbbe_set, name##_dbbe)
 
 SET_DECLARE(kdb_dbbe_set, struct kdb_dbbe);
+#else
+#define	KDB_BACKEND(name, init, trace, trace_thread, trap) \
+	struct kdb_dbbe name##_dbbe = {		\
+		.dbbe_name = #name,			\
+		.dbbe_init = init,			\
+		.dbbe_trace = trace,			\
+		.dbbe_trace_thread = trace_thread,	\
+		.dbbe_trap = trap			\
+	};
+#endif
 
 extern u_char kdb_active;		/* Non-zero while in debugger. */
 extern int debugger_on_panic;		/* enter the debugger on panic. */
@@ -83,13 +94,13 @@ void	kdb_panic(const char *);
 void	kdb_reboot(void);
 void	kdb_reenter(void);
 void	kdb_reenter_silent(void);
+#if !defined(__RTBSD_LIBBSD__)
 struct pcb *kdb_thr_ctx(struct thread *);
 struct thread *kdb_thr_first(void);
 struct thread *kdb_thr_from_pid(pid_t);
 struct thread *kdb_thr_lookup(lwpid_t);
 struct thread *kdb_thr_next(struct thread *);
 int	kdb_thr_select(struct thread *);
-#if !defined(__RTBSD_LIBBSD__)
 int	kdb_trap(int, int, struct trapframe *);
 #else
 int	kdb_trap(int, int, void *);

@@ -278,8 +278,10 @@ static struct rman acpi_rman_io, acpi_rman_mem;
 /* Holds the description of the acpi0 device. */
 static char acpi_desc[ACPI_OEM_ID_SIZE + ACPI_OEM_TABLE_ID_SIZE + 2];
 
+#if !defined(__RTBSD_LIBBSD__)
 SYSCTL_NODE(_debug, OID_AUTO, acpi, CTLFLAG_RD | CTLFLAG_MPSAFE, NULL,
     "ACPI debugging");
+#endif
 static char acpi_ca_version[12];
 SYSCTL_STRING(_debug_acpi, OID_AUTO, acpi_ca_version, CTLFLAG_RD,
 	      acpi_ca_version, 0, "Version of Intel ACPI-CA");
