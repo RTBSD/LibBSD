@@ -3,13 +3,19 @@ import os
 EXEC_PATH   = os.getenv('RTT_EXEC_PATH') or '/usr/bin'
 
 # 选项
+use_aarch64 = ARGUMENTS.get('AARCH64', '0') == '1'
 use_fdt = ARGUMENTS.get('FDT', '0') == '1'
 use_acpi = ARGUMENTS.get('ACPI', '0') == '1'
+use_gdb_stub = ARGUMENTS.get('GDBSTUB', '0') == '1'
+
+if use_aarch64:
+    cc_prefix = 'aarch64-none-elf-gcc'
+    ar_prefix = 'aarch64-none-elf-ar'
 
 env = Environment(
     tools=['default', 'gcc'],
-    CC=EXEC_PATH + '/' + 'aarch64-none-elf-gcc',
-    AR=EXEC_PATH + '/' + 'aarch64-none-elf-ar',
+    CC=EXEC_PATH + '/' + cc_prefix,
+    AR=EXEC_PATH + '/' + ar_prefix,
     CFLAGS=[
         '-D__RTBSD_LIBBSD__',
         '-std=gnu99',
@@ -34,10 +40,14 @@ env = Environment(
     ]
 )
 
+if use_aarch64:
+    env.Append(CFLAGS=['-DAARCH64=1'])
 if use_fdt:
     env.Append(CFLAGS=['-DFDT=1'])
 if use_acpi:
     env.Append(CFLAGS=['-DDEV_ACPI=1'])
+if use_gdb_stub:
+    env.Append(CFLAGS=['-DKDB=1'])
 
 # 基础源文件
 sources = [
@@ -50,9 +60,15 @@ sources = [
     'freebsd/sys/kern/kern_linker.c',
     'freebsd/sys/kern/subr_rman.c',
     'freebsd/sys/kern/subr_sbuf.c',
+    'freebsd/sys/libkern/memmem.c',
+    'freebsd/sys/libkern/strchrnul.c',
+]
+
+if use_aarch64:
+    sources += [
     'freebsd/sys/arm64/arm64/autoconf.c',
     'freebsd/sys/arm64/arm64/nexus.c',
-]
+    ]
 
 if use_fdt:
     sources += [
@@ -121,6 +137,16 @@ if use_acpi:
         'namespace', 'parser', 'resources', 'tables', 'utilities'
     ]:
         sources += Glob('freebsd/sys/contrib/dev/acpica/components/%s/*.c' % subdir)
+
+if use_gdb_stub and use_aarch64:
+    sources += [
+        'freebsd/sys/arm64/arm64/debug_monitor.c',
+        'freebsd/sys/arm64/arm64/gdb_machdep.c',
+        'freebsd/sys/dev/uart/uart_dbg.c',
+        'freebsd/sys/gdb/gdb_main.c',
+        'freebsd/sys/gdb/gdb_packet.c',
+        'freebsd/sys/kern/subr_kdb.c',
+    ]
 
 # 生成静态库
 lib = env.StaticLibrary('bsd', sources)

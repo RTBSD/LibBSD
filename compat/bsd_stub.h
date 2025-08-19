@@ -223,6 +223,11 @@ struct thread
 {
 	void *ta;
 	uint32_t td_tid;
+	int td_stopsched;
+};
+
+struct pcb
+{
 };
 
 struct timeout_task
@@ -346,6 +351,26 @@ struct bintime
 #define membar_acquire() \
 	__sync_synchronize()
 
+#define	isb()		__asm __volatile("isb" : : : "memory")
+
+/*
+ * Options for DMB and DSB:
+ *	oshld	Outer Shareable, load
+ *	oshst	Outer Shareable, store
+ *	osh	Outer Shareable, all
+ *	nshld	Non-shareable, load
+ *	nshst	Non-shareable, store
+ *	nsh	Non-shareable, all
+ *	ishld	Inner Shareable, load
+ *	ishst	Inner Shareable, store
+ *	ish	Inner Shareable, all
+ *	ld	Full system, load
+ *	st	Full system, store
+ *	sy	Full system, all
+ */
+#define	dsb(opt)	__asm __volatile("dsb " __STRING(opt) : : : "memory")
+#define	dmb(opt)	__asm __volatile("dmb " __STRING(opt) : : : "memory")
+
 /* efi.h */
 #define preload_search_by_type(...) NULL
 #define preload_fetch_addr(...) NULL
@@ -353,6 +378,8 @@ struct bintime
 
 /* netbsd/libkern.h */
 int pmatch(const char *, const char *, const char **);
+void *memmem(const void *l, size_t l_len, const void *s, size_t s_len);
+char *strchrnul(const char *p, int ch);
 
 /* sysctl.h */
 struct sysctl_ctx_list
@@ -434,7 +461,7 @@ struct sysctlnode
 struct malloc_type
 {
 };
-#define MALLOC_DEFINE(type, shortdesc, longdesc) struct malloc_type type[1] = {};
+#define MALLOC_DEFINE(type, shortdesc, longdesc) struct malloc_type type[1] __attribute__((unused)) = {};
 #define MALLOC_DECLARE(type) extern struct malloc_type type[1]
 
 /* module.h */
@@ -648,6 +675,7 @@ struct cdev
 #define resume_all_fs(...)
 #define devctl_process_running() false
 #define KERNEL_PANICKED() false
+#define SCHEDULER_STOPPED() false
 
 /* linker.h */
 struct linker_file
@@ -656,8 +684,6 @@ struct linker_file
 typedef struct linker_file *linker_file_t;
 
 /* intr.h */
-#define intr_disable() bsd_osal_intr_disable()
-#define intr_restore(s) bsd_osal_intr_restore(s)
 #define intr_setup_irq(...) 0
 #define intr_teardown_irq(...) 0
 #define intr_describe_irq(...) 0
@@ -683,5 +709,34 @@ extern int smp_started;
 extern enum arm64_bus arm64_bus_method;
 
 #define GIANT_REQUIRED mtx_assert(&Giant, MA_OWNED)
+
+/* cpufunc.h */
+#define	cpu_icache_sync_range(a, s)	bsd_osal_icache_sync_range((a), (s))
+
+/* pcpu.h */
+#define	PCPU_GET(member)	0U
+
+/* pcb.h */
+#define makectx(...)
+
+/* cons.h */
+#define cngrab()
+#define cnungrab()
+
+/* signal.h */
+#define	SIGTRAP		5	/* trace trap (not reset when caught) */
+#define	SIGEMT		7	/* EMT instruction */
+
+/* ttydefaults.h */
+/*
+ * XXX: A lot of code uses lowercase characters, but control-character
+ * conversion is actually only valid when applied to uppercase
+ * characters. We just treat lowercase characters as if they were
+ * inserted as uppercase.
+ */
+#define	CTRL(x) ((x) >= 'a' && (x) <= 'z' ? \
+	((x) - 'a' + 1) : (((x) - 'A' + 1) & 0x7f))
+
+#define	__read_frequently
 
 #endif

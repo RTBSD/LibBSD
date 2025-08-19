@@ -55,9 +55,13 @@ typedef	struct _device	*device_t;
 #include <sys/rman.h>
 #include <freebsd/local/bus_if.h>
 #include <freebsd/local/device_if.h>
-#include <freebsd/machine/bus.h>
-#include <freebsd/machine/resource.h>
-#include <freebsd/machine/intr.h>
+#if (AARCH64)
+#include <freebsd/machine/aarch64/bus.h>
+#include <freebsd/machine/aarch64/resource.h>
+#include <freebsd/machine/aarch64/intr.h>
+#include <freebsd/machine/aarch64/armreg.h>
+#include <freebsd/machine/aarch64/cpufunc.h>
+#endif
 
 #if defined(LIBBSD_FREEBSD_FDT) && (FDT) /* FreeBSD compat header files for FDT */
 #include <dev/ofw/openfirm.h>
@@ -88,6 +92,18 @@ typedef	struct _device	*device_t;
 #include <dev/acpica/acpiio.h>
 #include <dev/acpica/acpivar.h>
 #endif /* LIBBSD_FREEBSD_ACPI */
+
+#if defined(LIBBSD_FREEBSD_KDB) && defined(KDB)
+#include <setjmp.h>
+#include <sys/kdb.h>
+#if (AARCH64)
+#include <freebsd/machine/aarch64/debug_monitor.h>
+#include <freebsd/machine/aarch64/kdb.h>
+#include <freebsd/machine/aarch64/gdb_machdep.h>
+#endif
+#include <gdb/gdb.h>
+#include <gdb/gdb_int.h>
+#endif /* LIBBSD_FREEBSD_KDB */
 #endif /* LIBBSD_FREEBSD */
 
 #if defined(LIBBSD_NETBSD) /* NetBSD basic compat header files */

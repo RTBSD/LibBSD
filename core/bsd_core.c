@@ -36,6 +36,12 @@ int netbsd_init(void);
 void netbsd_deinit(void);
 #endif
 
+#if KDB
+void dbg_init(void);
+void kdb_init(void);
+void kdb_enter(const char *why, const char *msg);
+#endif
+
 RWSET_DECLARE(sysinit_set, struct sysinit);
 
 /*
@@ -85,12 +91,9 @@ sysinit_mklist(struct sysinitlist *list, struct sysinit **set,
 static void mi_startup(void)
 {
 	struct sysinit *sip;
-	int last;
 
 	/* Construct and sort sysinit list. */
 	sysinit_mklist(&sysinit_list, SET_BEGIN(sysinit_set), SET_LIMIT(sysinit_set));
-
-	last = SI_SUB_COPYRIGHT;
 
 	/*
 	 * Perform each system initialization task from the ordered list.  Note
@@ -109,9 +112,6 @@ static void mi_startup(void)
 
 		/* Call function */
 		(*(sip->func))(sip->udata);
-
-		/* Check off the one we're just done */
-		last = sip->subsystem;
 	}
 
 	printf("mi_startup done\n");
@@ -140,6 +140,13 @@ int bsd_system_init(void)
 	printf("netbsd done\n");
 #endif
 
+#if KDB
+	dbg_init();
+	kdb_init();
+	printf("debug enabled\n");
+	kdb_enter("bootflags", "Boot flags requested debugger");
+#endif
+
 err_exit:
 	if (err != 0)
 	{
@@ -163,5 +170,13 @@ int bsd_display_acpi_table(void)
 int bsd_display_fdt_table(void)
 {
 	return ofwdump_main(0, NULL);
+}
+#endif
+
+#if KDB
+extern int kdb_trap(int, int, void *);
+int bsd_kdb_trap(int type, int code, void *trapframe)
+{
+	return kdb_trap(type, code, trapframe);
 }
 #endif

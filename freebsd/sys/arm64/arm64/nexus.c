@@ -451,6 +451,8 @@ nexus_map_resource(device_t bus, device_t child, int type, struct resource *r,
 #else
 	start = rman_get_start(r);
 	length = rman_get_size(r);
+	(void)error;
+	(void)args;
 #endif
 
 #if !defined(__RTBSD_LIBBSD__)

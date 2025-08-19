@@ -2714,6 +2714,8 @@ device_attach(device_t dev)
 	dev->flags &= ~DF_DONENOMATCH;
 #if !defined(__RTBSD_LIBBSD__)
 	EVENTHANDLER_DIRECT_INVOKE(device_attach, dev);
+#else
+	(void)attachentropy;
 #endif /* __RTBSD_LIBBSD__ */
 	return (0);
 }
@@ -5238,6 +5240,7 @@ root_setup_intr(device_t dev, device_t child, struct resource *irq, int flags,
 	 * If an interrupt mapping gets to here something bad has happened.
 	 */
 	panic("root_setup_intr");
+	return 0;
 }
 
 /*

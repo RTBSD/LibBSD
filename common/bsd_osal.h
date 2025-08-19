@@ -97,4 +97,11 @@ int bsd_osal_dev_printf(int level, const char *dev_name, const char *fmt, ...);
 void *bsd_osal_get_fdt(void);
 void *bsd_osal_get_acpi(void);
 
+int bsd_osal_uart_dbg_init(void);
+int bsd_osal_uart_dbg_deinit(void);
+void bsd_osal_uart_dbg_putc(int c);
+int bsd_osal_uart_dbg_getc(void);
+
+void bsd_osal_icache_sync_range(uintptr_t base, size_t size);
+
 #endif

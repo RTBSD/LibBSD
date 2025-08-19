@@ -64,3 +64,10 @@ int bsd_osal_dev_printf(int level, const char *dev_name, const char *fmt, ...) {
 
 void *bsd_osal_get_fdt(void) { return 0; }
 void *bsd_osal_get_acpi(void) { return 0; }
+
+int bsd_osal_uart_dbg_init(void) {return 0;}
+int bsd_osal_uart_dbg_deinit(void) {return 0;}
+void bsd_osal_uart_dbg_putc(int c) {}
+int bsd_osal_uart_dbg_getc(void) {return -1;}
+
+void bsd_osal_icache_sync_range(uintptr_t base, size_t size) {}

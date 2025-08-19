@@ -36,6 +36,7 @@ null_add_child(device_t bus, int order, const char *name,
 {
 
 	panic("bus_add_child is not implemented");
+	return NULL;
 }
 
 static int
